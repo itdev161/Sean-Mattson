@@ -1,3 +1,4 @@
 {
-    "mongoURI": "mongodb+srv://smatty:MATCRules!@cluster0.u5gfb.mongodb.net/test?retryWrites=true&w=majority"
+    "mongoURI": "mongodb+srv://smatty:MATCRules!@cluster0.u5gfb.mongodb.net/test?retryWrites=true&w=majority",
+    "jwtSecret": "quietsecret"
 }
