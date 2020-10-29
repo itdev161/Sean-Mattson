@@ -5,6 +5,8 @@ import {check, validationResult} from 'express-validator';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import User from './models/User';
+import jwt from 'jsonwebtoken';
+import config from 'config';
 
 
 // Initialize the express application
