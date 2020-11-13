@@ -1,7 +1,7 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 import Axios from 'axios';
+import { BrowserRouter as Router, Switch, Route, Link} from 'react-router-dom';
 
 class App extends React.Component {
 
@@ -23,12 +23,37 @@ class App extends React.Component {
 
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          GoodThings
-        </header>
-        {this.state.data}
-      </div>
+      <Router>
+        <div className="App">
+          <header className="App-header">
+            <h1>GoodThings</h1>
+            <ul>
+              <li>
+                <Link to="/">Home</Link>
+              </li>
+              <li>
+              <Link to="/register">Register</Link>
+              </li>
+              <li>
+              <Link to="/login">Login</Link>
+              </li>
+            </ul>
+          </header>
+          <main>
+            <Route exact path="/">
+              {this.state.data}
+            </Route>
+            <Switch>
+              <Route path="/register">
+                Register
+              </Route>
+              <Route path="/login">
+                Login
+              </Route>
+            </Switch>
+          </main>
+        </div>
+      </Router>
     );
   }
 }
