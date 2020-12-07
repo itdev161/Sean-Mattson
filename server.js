@@ -146,7 +146,7 @@ app.get('/api/posts', auth, async (req, res) => {
 
 // GET api/posts/id
 // Get single post
-app.get{'/api/posts/:id', auth, async (req, res)=> {
+app.get('/api/posts/:id', auth, async (req, res)=> {
     try {
         const post = await Post.findById(req.params.id);
 
@@ -160,7 +160,63 @@ app.get{'/api/posts/:id', auth, async (req, res)=> {
         console.error(error);
         res.status(500).send('Server error');
     }
-}};
+});
+
+// DELETE api/posts/:id
+// Delete a post
+
+app.delete('/api/posts/:id', auth, async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+
+         // Make sure the post was found
+        if (!post) {
+            return res.status(404).json({ msg: 'Post not found'});
+        }
+
+        // Make sure the person making request created the post
+        if (post.user.toString() !== req.user.id) {
+            return res.status(401).json({ msg: 'User not authorized' });
+        }
+
+        await post.remove();
+
+        res.json({ msg: 'Post removed' });
+    } catch(error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    }
+});
+
+// PUT api/posts/:id
+// Update a post
+app.put('/api/posts/:id', auth, async (req, res) => {
+    try {
+        const { title, body } = req.body;
+        const post = await Post.findById(req.params.id);
+
+        // Make sure post was found
+        if (!post) {
+            return res.status(404).json({ msg: 'Post not found'});
+        }
+
+        // Make sure the person making request created the post
+        if (post.user.toString() !== req.user.id) {
+            return res.status(401).json({ msg: 'User not authorized' });
+        }
+
+        // Update the post and return
+        post.title = title || post.title;
+        post.body = body || post.body;
+
+        await post.save();
+
+        res.json(post);
+    } catch(error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    }
+});
 
 
 
