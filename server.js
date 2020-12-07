@@ -8,6 +8,7 @@ import User from './models/User';
 import jwt from 'jsonwebtoken';
 import config from 'config';
 import auth from './middleware/auth';
+import Post from './models/Post';
 
 
 // Initialize the express application
@@ -88,6 +89,136 @@ async (req, res) =>{
         }
     }
 );
+
+// Post Endpoints
+// Create post
+app.post(
+        '/api/posts',
+        [
+            auth,
+            [
+                check('title', 'Title text is required')
+                    .not()
+                    .isEmpty(),
+                check('body', 'Body text is required')
+                    .not()
+                    .isEmpty()
+            ]
+        ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            res.status(400).json({errors:errors.array() });
+        } else {
+            const {title, body} = req.body;
+            try {
+                // Get the user who created the post
+                const user = await User.findById(req.user.id);
+
+                // Create a new post
+                const post = new Post({
+                    user: user.id,
+                    title: title,
+                    body: body
+                });
+
+                await post.save();
+                res.json(post);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Server error');
+            }
+        }
+    }
+);
+
+// Get api/posts
+// Get posts
+app.get('/api/posts', auth, async (req, res) => {
+    try {
+        const posts = await Post.find().sort({ date: -1 });
+        res.json(posts);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    }
+});
+
+// GET api/posts/id
+// Get single post
+app.get('/api/posts/:id', auth, async (req, res)=> {
+    try {
+        const post = await Post.findById(req.params.id);
+
+        // Make sure the post was found
+        if (!post) {
+            return res.status(404).json({ msg: 'Post not found'});
+        }
+
+        res.json(post);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    }
+});
+
+// DELETE api/posts/:id
+// Delete a post
+
+app.delete('/api/posts/:id', auth, async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+
+         // Make sure the post was found
+        if (!post) {
+            return res.status(404).json({ msg: 'Post not found'});
+        }
+
+        // Make sure the person making request created the post
+        if (post.user.toString() !== req.user.id) {
+            return res.status(401).json({ msg: 'User not authorized' });
+        }
+
+        await post.remove();
+
+        res.json({ msg: 'Post removed' });
+    } catch(error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    }
+});
+
+// PUT api/posts/:id
+// Update a post
+app.put('/api/posts/:id', auth, async (req, res) => {
+    try {
+        const { title, body } = req.body;
+        const post = await Post.findById(req.params.id);
+
+        // Make sure post was found
+        if (!post) {
+            return res.status(404).json({ msg: 'Post not found'});
+        }
+
+        // Make sure the person making request created the post
+        if (post.user.toString() !== req.user.id) {
+            return res.status(401).json({ msg: 'User not authorized' });
+        }
+
+        // Update the post and return
+        post.title = title || post.title;
+        post.body = body || post.body;
+
+        await post.save();
+
+        res.json(post);
+    } catch(error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    }
+});
+
+
 
 // authorize user endpoint
 app.get('/api/auth', auth, async (req, res) => {
